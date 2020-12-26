@@ -325,6 +325,12 @@ exception:
 ;                                   save
 ; =============================================================================
 save:
+		; 需要保存 cr3 寄存器的值
+		mov [esp - 8], eax
+		mov eax, cr3
+		push eax
+		mov eax, [esp - 4]
+
         pushad          ; `.
         push    ds      ;  |
         push    es      ;  | 保存原寄存器值
@@ -390,15 +396,17 @@ restart:
 	mov	dword [tss + TSS3_S_SP0], eax
 restart_reenter:
 	dec	dword [k_reenter]
+	
+	lea eax, [esp+CR3REG]
+	mov cr3, eax
+
 	pop	gs
 	pop	fs
 	pop	es
 	pop	ds
 	popad
-	; 根据进程栈帧修改 cr3 寄存器
-	mov eax, [esp]
-	mov cr3, eax
-	add	esp, 8
+
+	add esp, 8
 	
 	iretd
 
