@@ -112,16 +112,16 @@ PUBLIC int do_fork()
 	phys_copy((void*)child_base, (void*)caller_T_base, caller_T_size);
 
 	// pdt(页目录项起始地址)
-	int pde_base = OUR_BASE_DIR_START + (pid - (NR_TASKS + NR_NATIVE_PROCS)) * OUR_PROC_CONTAIN_SIZE;
+	int pde_base = OUR_BASE_DIR_START + (child_pid - (NR_TASKS + NR_NATIVE_PROCS)) * OUR_PROC_CONTAIN_SIZE;
 	// 设置 cr3 寄存器
 	p->regs.cr3 = pde_base;
 	// pte(页表项起始地址)
 	int pte_base = pde_base + OUR_PAGE_SIZE;
 
-	sprintf(debug_info, "name: %s, pid: %d, pde_base: %d, pte_base: %d, cr3: %d; ",
-			p->name, pid, pde_base, pte_base, p->regs.cr3);
+	sprintf(debug_info, "name: %s, pid: %d, child_base: %d, pde_base: %d, pte_base: %d, cr3: %d; ",
+			p->name, child_pid, child_base, pde_base, pte_base, p->regs.cr3);
 
-	for (i = 0; i < 20; i++) disp_str(debug_info);
+	for (i = 0; i < 0; i++) disp_str(debug_info);
 	
 	// 在页目录项中写入页表项的基地址
 	phys_copy((void *)pde_base,

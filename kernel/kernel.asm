@@ -407,7 +407,12 @@ restart_reenter:
 	pop	es
 	pop	ds
 	popad
-
+	
+	;push eax
+	;mov eax, [esp + 4]
+	;mov cr3, eax
+	;pop eax
+	
 	add esp, 8
 	
 	iretd
