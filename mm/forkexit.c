@@ -118,11 +118,11 @@ PUBLIC int do_fork()
 	// 设置 cr3 寄存器
 	p->regs.cr3 = pde_base;
 	// 赋值给内核基地址
-	for (i = 1; i <= OUR_KERNEL_DIR_NUM; i++) {
-		int kernel_pte_address = 0x100000 + i * OUR_PAGE_SIZE;
+	for (i = 0; i < OUR_KERNEL_DIR_NUM; i++) {
+		int kernel_pte_address = 0x100000 + i * 4;
 		// 在页目录项中写入内核页表项的基地址
-		phys_copy((void *)pde_base,
-				  (void *)&kernel_pte_address,
+		phys_copy((void *)(pde_base + 4 * i),
+				  (void *)kernel_pte_address,
 				  4);
 	}
 	// 第二个页表写入用户的页表项
@@ -149,11 +149,11 @@ PUBLIC int do_fork()
 
 	/* child's LDT */
 	init_desc(&p->ldts[INDEX_LDT_C],
-		  0xa000,
+		  0x1000 * OUR_KERNEL_DIR_NUM,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
 	init_desc(&p->ldts[INDEX_LDT_RW],
-		  0xa000,
+		  0x1000 * OUR_KERNEL_DIR_NUM,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
 
