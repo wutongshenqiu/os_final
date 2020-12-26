@@ -20,6 +20,13 @@
 #include "keyboard.h"
 #include "proto.h"
 
+// 设置页目录基地址为 20MB(0x1400000) 起始处
+// 每个进程拥有一个页目录项和256个页表项, 共 8KB(0x2000) 空间
+#define OUR_BASE_DIR_START 0x1400000
+#define OUR_PAGE_SIZE 0x1000
+#define OUR_PROC_CONTAIN_SIZE 0x2000
+#define OUR_PTE_NUM 0x100
+
 
 PRIVATE void cleanup(struct proc * proc);
 
@@ -102,13 +109,33 @@ PUBLIC int do_fork()
 	/* child is a copy of the parent */
 	phys_copy((void*)child_base, (void*)caller_T_base, caller_T_size);
 
+	// pdt(页目录项起始地址)
+	int pde_base = OUR_BASE_DIR_START + (pid - (NR_TASKS + NR_NATIVE_PROCS)) * OUR_PROC_CONTAIN_SIZE;
+	// 设置 cr3 寄存器
+	p->regs.cr3 = pde_base;
+	// pte(页表项起始地址)
+	int pte_base = pde_base + OUR_PAGE_SIZE;
+	// 在页目录项中写入页表项的基地址
+	phys_copy((void *)pde_base,
+			  (void *)&pte_base,
+			  4);
+
+	// 在页表项中写入对应的物理地址
+	for (i = 0; i < OUR_PTE_NUM; i++) {
+		int pte_entry = child_base + i * OUR_PAGE_SIZE;
+		phys_copy((void *)(pte_base + i * 4),
+				  (void *)&pte_entry,
+				  4);
+	}
+
+
 	/* child's LDT */
 	init_desc(&p->ldts[INDEX_LDT_C],
-		  child_base,
+		  0,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
 	init_desc(&p->ldts[INDEX_LDT_RW],
-		  child_base,
+		  0,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
 
