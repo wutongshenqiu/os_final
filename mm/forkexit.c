@@ -115,8 +115,13 @@ PUBLIC int do_fork()
 	p->regs.cr3 = pde_base;
 	// pte(页表项起始地址)
 	int pte_base = pde_base + OUR_PAGE_SIZE;
-	printf("proc name: %s, pid: %d, pde_base: %d, cr3: %d, pte_base: %d\n",
-			p->name, pid, pde_base, p->regs.cr3, pte_base);
+	disp_str("pde_base: ");
+	disp_int(pde_base);
+	disp_str(", pte_base: ");
+	disp_int(pte_base);
+	disp_str(", cr3: ");
+	disp_int(p->regs.cr3);
+	disp_str("; ");
 	// 在页目录项中写入页表项的基地址
 	phys_copy((void *)pde_base,
 			  (void *)&pte_base,
