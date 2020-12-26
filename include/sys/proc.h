@@ -19,7 +19,7 @@ struct stackframe {	/* proc_ptr points here				↑ Low			*/
 	u32	edx;		/* ┃						│			*/
 	u32	ecx;		/* ┃						│			*/
 	u32	eax;		/* ┛						│			*/
-	u32 	cr3;
+	u32 cr3;
 	u32	retaddr;	/* return address for assembly code save()	│			*/
 	u32	eip;		/*  ┓						│			*/
 	u32	cs;		/*  ┃						│			*/

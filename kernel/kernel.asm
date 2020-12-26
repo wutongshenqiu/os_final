@@ -394,8 +394,11 @@ restart_reenter:
 	pop	fs
 	pop	es
 	pop	ds
-	pop 	cr3
 	popad
-	add	esp, 4
+	; 根据进程栈帧修改 cr3 寄存器
+	mov eax, [esp]
+	mov cr3, eax
+	add	esp, 8
+	
 	iretd
 

@@ -103,6 +103,11 @@ PUBLIC int kernel_main()
 		p->regs.esp	= (u32)stk;
 		p->regs.eflags	= eflags;
 
+		// TODO
+		// 修改 CR3 寄存器
+		// 原始的 PAGE_DIR_BASE 是 0x100000
+		p->regs.cr3 = 0x100000;
+
 		p->ticks = p->priority = prio;
 
 		p->p_flags = 0;
@@ -345,15 +350,15 @@ void Init()
  *======================================================================*/
 void TestA()
 {
-	int pid = getpid();
-	int seg_base = ldt_seg_linear(&proc_table[pid], INDEX_LDT_RW);
+	// int pid = getpid();
+	// int seg_base = ldt_seg_linear(&proc_table[pid], INDEX_LDT_RW);
 	for(;;) {
-		milli_delay(1000);
-		disp_str("ProcA running, pid: ");
-		disp_int(pid);
-		disp_str(", segment base: ");
-		disp_int(seg_base);
-		disp_str("; ");
+		// milli_delay(1000);
+		// disp_str("ProcA running, pid: ");
+		// disp_int(pid);
+		// disp_str(", segment base: ");
+		// disp_int(seg_base);
+		// disp_str("; ");
 	}
 }
 
@@ -362,15 +367,15 @@ void TestA()
  *======================================================================*/
 void TestB()
 {
-	int pid = getpid();
-	int seg_base = ldt_seg_linear(&proc_table[pid], INDEX_LDT_RW);
+	// int pid = getpid();
+	// int seg_base = ldt_seg_linear(&proc_table[pid], INDEX_LDT_RW);
 	for(;;) {
-		milli_delay(1000);
-		disp_str("ProcB running, pid: ");
-		disp_int(pid);
-		disp_str(", segment base: ");
-		disp_int(seg_base);
-		disp_str("; ");
+		// milli_delay(1000);
+		// disp_str("ProcB running, pid: ");
+		// disp_int(pid);
+		// disp_str(", segment base: ");
+		// disp_int(seg_base);
+		// disp_str("; ");
 	}
 }
 

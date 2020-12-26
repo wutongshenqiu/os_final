@@ -18,6 +18,7 @@ EBXREG		equ	KERNELESPREG	+ 4
 EDXREG		equ	EBXREG		+ 4
 ECXREG		equ	EDXREG		+ 4
 EAXREG		equ	ECXREG		+ 4
+; CR3 register
 CR3REG		equ	EAXREG		+ 4
 RETADR		equ	CR3REG		+ 4
 EIPREG		equ	RETADR		+ 4
