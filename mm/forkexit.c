@@ -24,8 +24,9 @@
 // 每个进程拥有一个页目录项和256个页表项, 共 8KB(0x2000) 空间
 #define OUR_BASE_DIR_START 0x1400000
 #define OUR_PAGE_SIZE 0x1000
+// 一个页目录，一个内核页表，一个用户页表
 #define OUR_PROC_CONTAIN_SIZE 0x2000
-#define OUR_PTE_NUM 0x100
+#define OUR_USER_PTE_NUM 0x100
 
 char debug_info[100];
 
@@ -111,27 +112,34 @@ PUBLIC int do_fork()
 	/* child is a copy of the parent */
 	phys_copy((void*)child_base, (void*)caller_T_base, caller_T_size);
 
-	// pdt(页目录项起始地址)
+	// pde(页目录项起始地址)
 	int pde_base = OUR_BASE_DIR_START + (child_pid - (NR_TASKS + NR_NATIVE_PROCS)) * OUR_PROC_CONTAIN_SIZE;
 	// 设置 cr3 寄存器
 	p->regs.cr3 = pde_base;
-	// pte(页表项起始地址)
-	int pte_base = pde_base + OUR_PAGE_SIZE;
+	// 第一个页目录项直接指向内核的页目录项
+	// 这里直接使用地址赋值
+	// int kernel_pte_base = 0x101000;
+	// 第二个页表写入用户的页表项
+	int user_pte_base = pde_base + OUR_PAGE_SIZE;
 
-	sprintf(debug_info, "name: %s, pid: %d, child_base: %d, pde_base: %d, pte_base: %d, cr3: %d; ",
-			p->name, child_pid, child_base, pde_base, pte_base, p->regs.cr3);
+	sprintf(debug_info, "name: %s, pid: %d, child_base: %d, pde_base: %d, user_pte_base: %d, cr3: %d; ",
+			p->name, child_pid, child_base, pde_base, user_pte_base, p->regs.cr3);
 
 	for (i = 0; i < 0; i++) disp_str(debug_info);
 	
-	// 在页目录项中写入页表项的基地址
+	// 在页目录项中写入内核页表项的基地址
 	phys_copy((void *)pde_base,
-			  (void *)&pte_base,
+			  (void *)0x100000,
+			  4);
+	// 在页目录项中写入用户页表项的基地址
+	phys_copy((void *)(pde_base + 4),
+			  (void *)&user_pte_base,
 			  4);
 
-	// 在页表项中写入对应的物理地址
-	for (i = 0; i < OUR_PTE_NUM; i++) {
+	// 在页表项中写入用户对应的物理地址
+	for (i = 0; i < OUR_USER_PTE_NUM; i++) {
 		int pte_entry = child_base + i * OUR_PAGE_SIZE;
-		phys_copy((void *)(pte_base + i * 4),
+		phys_copy((void *)(user_pte_base + i * 4),
 				  (void *)&pte_entry,
 				  4);
 	}
@@ -139,11 +147,11 @@ PUBLIC int do_fork()
 
 	/* child's LDT */
 	init_desc(&p->ldts[INDEX_LDT_C],
-		  0,
+		  0x1000,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
 	init_desc(&p->ldts[INDEX_LDT_RW],
-		  0,
+		  0x1000,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
 
