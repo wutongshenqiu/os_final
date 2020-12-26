@@ -27,6 +27,8 @@
 #define OUR_PROC_CONTAIN_SIZE 0x2000
 #define OUR_PTE_NUM 0x100
 
+char debug_info[100];
+
 
 PRIVATE void cleanup(struct proc * proc);
 
@@ -115,6 +117,11 @@ PUBLIC int do_fork()
 	p->regs.cr3 = pde_base;
 	// pte(页表项起始地址)
 	int pte_base = pde_base + OUR_PAGE_SIZE;
+
+	sprintf(debug_info, "name: %s, pid: %d, pde_base: %d, pte_base: %d, cr3: %d; ",
+			p->name, pid, pde_base, pte_base, p->regs.cr3);
+
+	for (i = 0; i < 20; i++) disp_str(debug_info);
 	
 	// 在页目录项中写入页表项的基地址
 	phys_copy((void *)pde_base,
@@ -139,8 +146,6 @@ PUBLIC int do_fork()
 		  0,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
-
-	__asm__("xchg %bx, %bx");
 
 	/* tell FS, see fs_fork() */
 	MESSAGE msg2fs;
