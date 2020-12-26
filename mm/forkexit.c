@@ -26,6 +26,7 @@
 #define OUR_PAGE_SIZE 0x1000
 // 一个页目录，一个内核页表，一个用户页表
 #define OUR_PROC_CONTAIN_SIZE 0x2000
+#define OUR_KERNEL_DIR_NUM 10
 #define OUR_USER_PTE_NUM 0x100
 
 char debug_info[100];
@@ -116,9 +117,14 @@ PUBLIC int do_fork()
 	int pde_base = OUR_BASE_DIR_START + (child_pid - (NR_TASKS + NR_NATIVE_PROCS)) * OUR_PROC_CONTAIN_SIZE;
 	// 设置 cr3 寄存器
 	p->regs.cr3 = pde_base;
-	// 第一个页目录项直接指向内核的页目录项
-	// 这里直接使用地址赋值
-	// int kernel_pte_base = 0x101000;
+	// 赋值给内核基地址
+	for (i = 1; i <= OUR_KERNEL_DIR_NUM; i++) {
+		int kernel_pte_address = 0x100000 + i * OUR_PAGE_SIZE;
+		// 在页目录项中写入内核页表项的基地址
+		phys_copy((void *)pde_base,
+				  (void *)&kernel_pte_address,
+				  4);
+	}
 	// 第二个页表写入用户的页表项
 	int user_pte_base = pde_base + OUR_PAGE_SIZE;
 
@@ -127,12 +133,8 @@ PUBLIC int do_fork()
 
 	for (i = 0; i < 0; i++) disp_str(debug_info);
 	
-	// 在页目录项中写入内核页表项的基地址
-	phys_copy((void *)pde_base,
-			  (void *)0x100000,
-			  4);
 	// 在页目录项中写入用户页表项的基地址
-	phys_copy((void *)(pde_base + 4),
+	phys_copy((void *)(pde_base + 4 * OUR_KERNEL_DIR_NUM),
 			  (void *)&user_pte_base,
 			  4);
 
@@ -147,11 +149,11 @@ PUBLIC int do_fork()
 
 	/* child's LDT */
 	init_desc(&p->ldts[INDEX_LDT_C],
-		  0x1000,
+		  0xa000,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_C | PRIVILEGE_USER << 5);
 	init_desc(&p->ldts[INDEX_LDT_RW],
-		  0x1000,
+		  0xa000,
 		  (PROC_IMAGE_SIZE_DEFAULT - 1) >> LIMIT_4K_SHIFT,
 		  DA_LIMIT_4K | DA_32 | DA_DRW | PRIVILEGE_USER << 5);
 
