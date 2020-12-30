@@ -12,7 +12,7 @@ CFLAGS		= -I ../include/ -c -fno-builtin -fno-stack-protector -Wall
 LDFLAGS		= -Ttext 0x1000
 DASMFLAGS	= -D
 LIB		= ../lib/orangescrt.a
-BIN		= echo pwd whoami id test1 test2 test3
+BIN		= echo pwd whoami id printA printB
 
 # All Phony Targets
 .PHONY : everything final clean realclean disasm all install
@@ -65,20 +65,16 @@ id.o: id.c ../include/type.h ../include/stdio.h
 id : id.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
 
-test1.o: test1.c ../include/type.h ../include/stdio.h
+printA.o: printA.c ../include/type.h ../include/stdio.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-test1 : test1.o start.o $(LIB)
+printA : printA.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
 
-test2.o: test2.c ../include/type.h ../include/stdio.h
+printB.o: printB.c ../include/type.h ../include/stdio.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-test2 : test2.o start.o $(LIB)
+printB : printB.o start.o $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $?
 
-test3.o: test3.c ../include/type.h ../include/stdio.h
-	$(CC) $(CFLAGS) -o $@ $<
 
-test3 : test3.o start.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $?

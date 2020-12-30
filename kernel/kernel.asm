@@ -399,7 +399,8 @@ restart_reenter:
 	dec	dword [k_reenter]
 	
 	; 切换 cr3 寄存器
-	mov eax, [esp+CR3REG]
+	; mov eax, [esp+CR3REG]
+	mov eax, 0x100000	
 	mov cr3, eax
 
 	pop	gs

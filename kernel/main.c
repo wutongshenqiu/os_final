@@ -245,7 +245,7 @@ void shabby_shell(const char * tty_name)
 	assert(fd_stdout == 1);
 
 	char rdbuf[128];
-
+	int run_in_behind = 0; //the flag
 	while (1) {
 		write(1, "$ ", 2);
 		int r = read(0, rdbuf, 70);
@@ -283,8 +283,12 @@ void shabby_shell(const char * tty_name)
 		else {
 			close(fd);
 			int pid = fork();
+
+			if(!strcmp(argv[argc - 1], "-b")) run_in_behind = 1;
+			
 			if (pid != 0) { /* parent */
 				int s;
+				if (!run_in_behind)
 				wait(&s);
 			}
 			else {	/* child */
