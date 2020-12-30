@@ -46,7 +46,7 @@ PUBLIC	struct task	user_proc_table[NR_NATIVE_PROCS] = {
 /* 	{TestC, STACK_SIZE_TESTC, "TestC"}}; */
 
 PUBLIC	char		task_stack[STACK_SIZE_TOTAL];
-
+PUBLIC  struct proc* proc_queue[6];
 PUBLIC	TTY		tty_table[NR_CONSOLES];
 PUBLIC	CONSOLE		console_table[NR_CONSOLES];
 

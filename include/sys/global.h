@@ -39,6 +39,7 @@ extern  struct task	user_proc_table[];
 extern	irq_handler	irq_table[];
 extern	TTY		tty_table[];
 extern  CONSOLE		console_table[];
+extern  struct proc*    proc_queue[6];
 
 /* MM */
 EXTERN	MESSAGE			mm_msg;

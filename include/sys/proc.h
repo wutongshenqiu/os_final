@@ -37,7 +37,7 @@ struct proc {
 
         int ticks;                 /* remained ticks */
         int priority;
-
+	int queue;
 	/* u32 pid;                   /\* process id passed in from MM *\/ */
 	char name[16];		   /* name of the process */
 
@@ -69,6 +69,8 @@ struct proc {
 	int exit_status; /**< for parent */
 
 	struct file_desc * filp[NR_FILES];
+
+	struct proc* next;
 };
 
 struct task {

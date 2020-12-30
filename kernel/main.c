@@ -16,7 +16,7 @@
 #include "console.h"
 #include "global.h"
 #include "proto.h"
-
+int flag=0;
 
 /*****************************************************************************
  *                               kernel_main
@@ -36,10 +36,12 @@ PUBLIC int kernel_main()
 
 	struct task * t;
 	struct proc * p = proc_table;
-
+	proc_queue[0]=proc_queue[1]=proc_queue[2]=proc_queue[3]=proc_queue[4]=proc_queue[5]=0;
 	char * stk = task_stack + STACK_SIZE_TOTAL;
 
 	for (i = 0; i < NR_TASKS + NR_PROCS; i++,p++,t++) {
+		p->queue=4;
+		p->next=0;
 		if (i >= NR_TASKS + NR_NATIVE_PROCS) {
 			p->p_flags = FREE_SLOT;
 			continue;
@@ -128,6 +130,12 @@ PUBLIC int kernel_main()
 	ticks = 0;
 
 	p_proc_ready	= proc_table;
+
+	p_proc_ready	= proc_table;
+	p_proc_ready->queue=0;
+	proc_queue[0]=&proc_table[0];
+    	proc_table[0].next=0;
+	proc_queue[1]=&proc_table[0];
 
 	init_clock();
         init_keyboard();
@@ -339,6 +347,10 @@ void Init()
 		}
 	}
 
+	flag=1;
+	for(i=0;i<80*10;i++){
+		disp_str(" ");
+	}
 	while (1) {
 		int s;
 		int child = wait(&s);
@@ -354,15 +366,21 @@ void Init()
  *======================================================================*/
 void TestA()
 {
-	// int pid = getpid();
-	// int seg_base = ldt_seg_linear(&proc_table[pid], INDEX_LDT_RW);
-	for(;;) {
-		// milli_delay(1000);
-		// disp_str("ProcA running, pid: ");
-		// disp_int(pid);
-		// disp_str(", segment base: ");
-		// disp_int(seg_base);
-		// disp_str("; ");
+	int t=0;
+	int g = 30;
+	while(1){
+		if(flag==1){
+			while(g>0){
+				if(p_proc_ready->ticks!=t){
+					g--;
+					disp_str("A");
+					t=p_proc_ready->ticks;
+					//milli_delay(1);
+					int m=getpid();
+				}
+				
+			}
+		}
 	}
 }
 
@@ -371,15 +389,18 @@ void TestA()
  *======================================================================*/
 void TestB()
 {
-	// int pid = getpid();
-	// int seg_base = ldt_seg_linear(&proc_table[pid], INDEX_LDT_RW);
-	for(;;) {
-		// milli_delay(1000);
-		// disp_str("ProcB running, pid: ");
-		// disp_int(pid);
-		// disp_str(", segment base: ");
-		// disp_int(seg_base);
-		// disp_str("; ");
+	int g = 30;
+	int t=0;
+	while(1){
+		if(flag==1){
+			while(g>0){
+				if(p_proc_ready->ticks!=t){
+					g--;
+					disp_str("B");
+					t=p_proc_ready->ticks;
+				}
+			}
+		}
 	}
 }
 
@@ -388,7 +409,19 @@ void TestB()
  *======================================================================*/
 void TestC()
 {
-	for(;;);
+	int t=0;
+	int g = 30;
+	while(1){
+		if(flag==1){
+			while(g>0){
+				if(p_proc_ready->ticks!=t){
+					g--;
+					disp_str("C");
+					t=p_proc_ready->ticks;
+				}
+			}
+		}
+	}
 }
 
 /*****************************************************************************

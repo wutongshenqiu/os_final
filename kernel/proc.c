@@ -190,7 +190,7 @@ PUBLIC void reset_msg(MESSAGE* p)
 PRIVATE void block(struct proc* p)
 {
 	assert(p->p_flags);
-	schedule();
+	schedule_queue();
 }
 
 /*****************************************************************************
@@ -597,5 +597,180 @@ PUBLIC void dump_msg(const char * title, MESSAGE* m)
 	       packed ? "" : "\n",
 	       packed ? "" : "\n"/* , */
 		);
+}
+PUBLIC manage_list(int policy){
+	struct proc* p;
+	for(int i = 0; i < policy; i++){
+		p=proc_queue[i*2];
+		if(p==0){
+			proc_queue[i*2+1]=0;
+		}else{
+			struct proc* pre;
+			pre=p;
+			while(p!=0&&p->p_flags!=0){
+				//disp_str(p->name);
+				p->queue=4;
+				p=p->next;
+				pre->next=0;
+				pre=p;
+			}
+			proc_queue[i*2]=p;
+			if(p==0){
+				proc_queue[i*2+1]=0;
+				continue;
+			}else{
+				p=p->next;
+				while(p!=0){
+					if(p->p_flags!=0){
+						//disp_str(p->name);
+						p->queue=4;
+						pre->next=p->next;
+						p->next=0;
+						p=pre->next;
+						if(p==0){
+							proc_queue[i*2+1]=pre;
+						}
+					}else{
+						pre=p;
+						p=p->next;
+					}
+				}
+			}
+		}
+	}
+	for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
+		if (p->p_flags == 0&&p->queue==4) {
+			queue(p);
+			//disp_str(p->name);
+			//disp_str(" ");
+		}
+	}
+
+}
+
+PUBLIC void schedule_rr()
+{
+	struct proc* p;
+	//disp_str("7");
+	int min_queue=3;
+	manage_list(1);
+	if(p_proc_ready->ticks<=0){
+		if(p_proc_ready->next==0){
+			p_proc_ready->ticks=p_proc_ready->priority;
+		}else{
+			p_proc_ready->ticks=p_proc_ready->priority;
+			proc_queue[0]=p_proc_ready->next;
+			p_proc_ready->next=0;
+			proc_queue[1]->next=p_proc_ready;
+			proc_queue[1]=p_proc_ready;
+		}
+	}
+    	p=proc_queue[0];
+	for(int i=0; i < 1;i++){//队列调整完毕，选取优先级最高的一个队列的第一个进行处理
+		p=proc_queue[i*2];
+
+		if(p!=0&&p->queue<=p_proc_ready->queue){
+			min_queue=p_proc_ready->queue;
+			p_proc_ready=p;
+			//disp_str(p->name);
+			//disp_str("    ");
+
+		}
+    }
+}
+
+PUBLIC void queue(struct proc* p){
+	p->queue=0;
+	//if(p-proc_table<6||p-proc_table>8){
+		p->ticks=p->priority;
+	//}
+	if(p-proc_table>=6&&p-proc_table<=8){
+		//disp_int(p-proc_table);
+	}
+	//disp_str(p->name);
+	//disp_str(" ");
+	if(proc_queue[0]==0){
+		proc_queue[0]=p;
+		proc_queue[1]=p;
+		p->next=0;
+	}else{
+		proc_queue[1]->next=p;
+		proc_queue[1]=p;
+		p->next=0;
+	}
+}
+
+int pow(int x,int y)
+{
+    int k=x;
+    for(int i=1;i<y;i++){
+        k*=x;
+    }
+    return k;
+}
+
+
+PUBLIC void schedule_queue()
+{
+	int i;
+	struct proc* p;
+	int min_queue=3;
+	manage_list(3);
+	if(p_proc_ready->ticks<=0){
+        	//disp_str("1");
+		//disp_str(p->name);
+		//disp_int(p_proc_ready->queue);
+		//disp_str("    ");
+		if(proc_queue[p_proc_ready->queue*2+(p_proc_ready->queue<2)*2]==0){
+           		//disp_str("2");
+            		p_proc_ready->queue+=(p_proc_ready->queue<2);
+			proc_queue[p_proc_ready->queue*2]=p_proc_ready;
+			proc_queue[p_proc_ready->queue*2+1]=p_proc_ready;
+			p_proc_ready->ticks=p_proc_ready->priority*(p_proc_ready->queue+1);
+			proc_queue[p_proc_ready->queue*2-2]=p_proc_ready->next;
+			if(p_proc_ready->next==0){
+				proc_queue[p_proc_ready->queue*2-1]=0;
+			}
+			p_proc_ready->next=0;
+		}else{
+            		if(p_proc_ready->queue==2){
+                		if(p_proc_ready->next==0){
+					p_proc_ready->ticks=p_proc_ready->priority*(p_proc_ready->queue+1);
+				}else{
+                    			p_proc_ready->ticks=p_proc_ready->priority*(p_proc_ready->queue+1);
+					proc_queue[4]=p_proc_ready->next;
+					p_proc_ready->next=0;
+					proc_queue[5]->next=p_proc_ready;
+					proc_queue[5]=p_proc_ready;
+				}
+            		}else{
+                		p_proc_ready->queue+=(p_proc_ready->queue<2);
+                		p_proc_ready->ticks=p_proc_ready->priority*(p_proc_ready->queue+1);
+				proc_queue[p_proc_ready->queue*2-2]=p_proc_ready->next;
+				if(p_proc_ready->next==0){
+					proc_queue[p_proc_ready->queue*2-1]=0;
+				}
+				p_proc_ready->next=0;
+				proc_queue[p_proc_ready->queue*2+1]->next=p_proc_ready;
+				proc_queue[p_proc_ready->queue*2+1]=p_proc_ready;
+			}
+            //disp_str("3");
+		}
+	}
+	p=proc_queue[0];
+	for(int i=0; i < 3;i++){
+		p=proc_queue[i*2];
+		if(p!=0&&p->queue<=p_proc_ready->queue){
+            		min_queue=p_proc_ready->queue;
+			p_proc_ready=p;
+			//printf("%d",p->queue);
+			//disp_str(p->name);
+			//disp_int(p->queue);
+			//disp_str(" ");
+		}
+	}
+    //if(min_queue==3){
+	//	p_proc_ready=&proc_table[0];
+	//}
 }
 

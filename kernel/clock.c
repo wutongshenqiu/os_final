@@ -48,7 +48,7 @@ PUBLIC void clock_handler(int irq)
 		return;
 	}
 
-	schedule();
+	schedule_queue();
 
 }
 
